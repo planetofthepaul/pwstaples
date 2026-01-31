@@ -224,12 +224,20 @@
                 isEraser = false;
                 eraserBtn.classList.remove('active');
             }
+            // Reset path when switching colors
+            if (!isDrawing) {
+                ctx.beginPath();
+            }
         });
         
         // Eraser toggle
         eraserBtn.addEventListener('click', () => {
             isEraser = !isEraser;
             eraserBtn.classList.toggle('active');
+            // Reset path when toggling eraser
+            if (!isDrawing) {
+                ctx.beginPath();
+            }
         });
         
         // Clear canvas
