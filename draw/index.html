@@ -118,6 +118,20 @@
             box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
         }
         
+        .btn-undo {
+            background: #66bb6a;
+            color: white;
+        }
+        
+        .btn-undo:hover {
+            background: #4caf50;
+        }
+        
+        .btn-undo:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
         .btn-clear {
             background: #ffa726;
             color: white;
@@ -178,6 +192,7 @@
             </div>
             
             <button class="btn-eraser" id="eraserBtn">🧹 Eraser</button>
+            <button class="btn-undo" id="undoBtn" disabled>↩️ Undo</button>
             <button class="btn-clear" id="clearBtn">🗑️ Clear Canvas</button>
             
             <div class="save-options">
@@ -198,6 +213,7 @@
         const brushSize = document.getElementById('brushSize');
         const brushSizeDisplay = document.getElementById('brushSizeDisplay');
         const eraserBtn = document.getElementById('eraserBtn');
+        const undoBtn = document.getElementById('undoBtn');
         const clearBtn = document.getElementById('clearBtn');
         const savePNG = document.getElementById('savePNG');
         const saveJPG = document.getElementById('saveJPG');
@@ -206,10 +222,39 @@
         let isEraser = false;
         let currentColor = '#000000';
         let currentSize = 3;
+        let history = [];
+        let historyStep = -1;
         
         // Initialize white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        saveHistory();
+        
+        // Save canvas state to history
+        function saveHistory() {
+            historyStep++;
+            if (historyStep < history.length) {
+                history.length = historyStep;
+            }
+            history.push(canvas.toDataURL());
+            undoBtn.disabled = historyStep === 0;
+        }
+        
+        // Undo function
+        function undo() {
+            if (historyStep > 0) {
+                historyStep--;
+                const img = new Image();
+                img.src = history[historyStep];
+                img.onload = function() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+                undoBtn.disabled = historyStep === 0;
+            }
+        }
+        
+        undoBtn.addEventListener('click', undo);
         
         // Update brush size display
         brushSize.addEventListener('input', (e) => {
@@ -245,6 +290,7 @@
             if (confirm('Clear the entire canvas?')) {
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                saveHistory();
             }
         });
         
@@ -256,8 +302,11 @@
         }
         
         function stopDrawing() {
-            isDrawing = false;
-            ctx.beginPath();  // Clean up path when done
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.beginPath();  // Clean up path when done
+                saveHistory();  // Save state after completing a stroke
+            }
         }
         
         function draw(e) {
