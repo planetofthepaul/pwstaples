@@ -243,12 +243,13 @@
         // Drawing functions
         function startDrawing(e) {
             isDrawing = true;
+            ctx.beginPath();  // Reset path when starting new stroke
             draw(e);
         }
         
         function stopDrawing() {
             isDrawing = false;
-            ctx.beginPath();
+            ctx.beginPath();  // Clean up path when done
         }
         
         function draw(e) {
@@ -261,8 +262,10 @@
             const x = (e.clientX - rect.left) * scaleX;
             const y = (e.clientY - rect.top) * scaleY;
             
+            // Set stroke properties before drawing
             ctx.lineWidth = currentSize;
             ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';  // Smoother corners
             ctx.strokeStyle = isEraser ? 'white' : currentColor;
             
             ctx.lineTo(x, y);
