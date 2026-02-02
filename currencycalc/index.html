@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Nomad Currency Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #1a1a1a;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .amount-input-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .currency-symbol {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #666;
+        }
+
+        .amount-input {
+            font-size: 2.5rem;
+            font-weight: 700;
+            border: none;
+            border-bottom: 3px solid #007aff;
+            padding: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        .amount-input:focus {
+            outline: none;
+            border-bottom-color: #0051d5;
+        }
+
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .currency-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .currency-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .currency-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .flag {
+            font-size: 2.5rem;
+        }
+
+        .currency-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .currency-code {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .converted-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007aff;
+            text-align: right;
+        }
+
+        .changes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .change-item {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .change-label {
+            font-size: 0.75rem;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .change-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .change-value.positive {
+            color: #22c55e;
+        }
+
+        .change-value.negative {
+            color: #ef4444;
+        }
+
+        .change-value.neutral {
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .currency-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .amount-input {
+                font-size: 2rem;
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 Digital Nomad Currency Dashboard</h1>
+            <p class="subtitle">Live exchange rates for remote workers worldwide</p>
+        </header>
+
+        <div class="input-section">
+            <div class="amount-input-wrapper">
+                <select id="baseCurrency" style="font-size: 1.5rem; font-weight: 600; border: none; background: transparent; cursor: pointer; padding: 10px;">
+                    <option value="USD">USD $</option>
+                    <option value="EUR">EUR €</option>
+                    <option value="GBP">GBP £</option>
+                    <option value="JPY">JPY ¥</option>
+                    <option value="AUD">AUD $</option>
+                    <option value="CHF">CHF Fr</option>
+                    <option value="CNY">CNY ¥</option>
+                    <option value="KRW">KRW ₩</option>
+                    <option value="MYR">MYR RM</option>
+                    <option value="MXN">MXN $</option>
+                    <option value="THB">THB ฿</option>
+                    <option value="IDR">IDR Rp</option>
+                    <option value="ILS">ILS ₪</option>
+                    <option value="NZD">NZD $</option>
+                    <option value="PHP">PHP ₱</option>
+                    <option value="RON">RON lei</option>
+                    <option value="TRY">TRY ₺</option>
+                </select>
+                <input 
+                    type="number" 
+                    class="amount-input" 
+                    id="amount" 
+                    value="1000"
+                    min="0"
+                />
+            </div>
+        </div>
+
+        <div class="currency-grid" id="currencyGrid">
+            <div class="loading">Loading exchange rates...</div>
+        </div>
+
+        <div class="timestamp" id="timestamp"></div>
+    </div>
+
+    <script>
+        const currencies = [
+            { code: 'USD', name: 'US Dollar', flag: '🇺🇸' },
+            { code: 'EUR', name: 'Euro', flag: '🇪🇺' },
+            { code: 'GBP', name: 'British Pound', flag: '🇬🇧' },
+            { code: 'JPY', name: 'Japanese Yen', flag: '🇯🇵' },
+            { code: 'AUD', name: 'Australian Dollar', flag: '🇦🇺' },
+            { code: 'CHF', name: 'Swiss Franc', flag: '🇨🇭' },
+            { code: 'CNY', name: 'Chinese Yuan', flag: '🇨🇳' },
+            { code: 'MYR', name: 'Malaysian Ringgit', flag: '🇲🇾' },
+            { code: 'KRW', name: 'South Korean Won', flag: '🇰🇷' },
+            { code: 'MXN', name: 'Mexican Peso', flag: '🇲🇽' },
+            { code: 'THB', name: 'Thai Baht', flag: '🇹🇭' },
+            { code: 'IDR', name: 'Indonesian Rupiah', flag: '🇮🇩' },
+            { code: 'ILS', name: 'Israeli New Shekel', flag: '🇮🇱' },
+            { code: 'NZD', name: 'New Zealand Dollar', flag: '🇳🇿' },
+            { code: 'PHP', name: 'Philippine Peso', flag: '🇵🇭' },
+            { code: 'RON', name: 'Romanian Leu', flag: '🇷🇴' },
+            { code: 'TRY', name: 'Turkish Lira', flag: '🇹🇷' }
+        ];
+
+        let currentRates = {};
+        let historicalRates = {};
+        let baseCurrency = 'USD';
+
+        // Update on input change or currency change
+        document.getElementById('amount').addEventListener('input', () => {
+            renderCurrencies();
+        });
+
+        document.getElementById('baseCurrency').addEventListener('change', (e) => {
+            baseCurrency = e.target.value;
+            loadData();
+        });
+
+        async function loadData() {
+            try {
+                // Load current rates
+                await loadCurrentRates();
+                
+                // Load historical rates
+                await loadHistoricalRates();
+                
+                renderCurrencies();
+                updateTimestamp();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('currencyGrid').innerHTML = 
+                    '<div style="text-align: center; color: #ef4444;">Failed to load exchange rates</div>';
+            }
+        }
+
+        async function loadCurrentRates() {
+            // Using frankfurter.app - free, no key, has historical data
+            const response = await fetch(`https://api.frankfurter.app/latest?from=${baseCurrency}`);
+            const data = await response.json();
+            currentRates = data.rates;
+            console.log(`Current rates loaded for base ${baseCurrency}:`, currentRates);
+            console.log('Available currency codes:', Object.keys(currentRates));
+        }
+
+        async function loadHistoricalRates() {
+            const now = new Date();
+            
+            // Calculate dates
+            const oneDayAgo = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+            const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+            const fiveYearsAgo = new Date(now.getTime() - 5 * 365 * 24 * 60 * 60 * 1000);
+
+            // Format dates as YYYY-MM-DD
+            const formatDate = (date) => date.toISOString().split('T')[0];
+
+            console.log('Fetching historical rates...');
+
+            // Frankfurter.app format: /YYYY-MM-DD?from=BASE
+            const [day, month, year, fiveYear] = await Promise.all([
+                fetch(`https://api.frankfurter.app/${formatDate(oneDayAgo)}?from=${baseCurrency}`).then(r => r.json()),
+                fetch(`https://api.frankfurter.app/${formatDate(oneMonthAgo)}?from=${baseCurrency}`).then(r => r.json()),
+                fetch(`https://api.frankfurter.app/${formatDate(oneYearAgo)}?from=${baseCurrency}`).then(r => r.json()),
+                fetch(`https://api.frankfurter.app/${formatDate(fiveYearsAgo)}?from=${baseCurrency}`).then(r => r.json())
+            ]);
+
+            historicalRates = {
+                '1d': day.rates,
+                '1m': month.rates,
+                '1y': year.rates,
+                '5y': fiveYear.rates
+            };
+
+            console.log('Historical rates loaded:', historicalRates);
+        }
+
+        function calculateChange(currencyName, currencyCode, period) {
+            const currentRate = currentRates[currencyCode];
+            const historicalRate = historicalRates[period]?.[currencyCode];
+
+            if (!currentRate || !historicalRate) {
+                return { 
+                    direction: 'neutral', 
+                    message: 'No data available'
+                };
+            }
+
+            const percentChange = ((currentRate - historicalRate) / historicalRate) * 100;
+            
+            let message, direction;
+            
+            if (Math.abs(percentChange) < 0.1) {
+                message = `This location is unchanged`;
+                direction = 'neutral';
+            } else if (percentChange > 0) {
+                message = `This location is now ${Math.abs(percentChange).toFixed(1)}% cheaper for you`;
+                direction = 'positive';
+            } else {
+                message = `This location is now ${Math.abs(percentChange).toFixed(1)}% more expensive for you`;
+                direction = 'negative';
+            }
+            
+            return { message, direction };
+        }
+
+        function renderCurrencies() {
+            const amount = parseFloat(document.getElementById('amount').value) || 1000;
+            
+            let html = '';
+
+            currencies.forEach(currency => {
+                // Skip if this is the base currency
+                if (currency.code === baseCurrency) return;
+                
+                const rate = currentRates[currency.code];
+                
+                if (!rate) return;
+
+                const convertedAmount = (amount * rate).toFixed(2);
+
+                const change1d = calculateChange(currency.name, currency.code, '1d');
+                const change1m = calculateChange(currency.name, currency.code, '1m');
+                const change1y = calculateChange(currency.name, currency.code, '1y');
+                const change5y = calculateChange(currency.name, currency.code, '5y');
+
+                html += `
+                    <div class="currency-card">
+                        <div class="currency-header">
+                            <div class="currency-info">
+                                <span class="flag">${currency.flag}</span>
+                                <div>
+                                    <div class="currency-name">${currency.name}</div>
+                                    <div class="currency-code">${currency.code}</div>
+                                </div>
+                            </div>
+                            <div class="converted-amount">
+                                ${formatNumber(convertedAmount)}
+                            </div>
+                        </div>
+
+                        <div class="changes-grid">
+                            <div class="change-item">
+                                <div class="change-label">vs 1 Day Ago</div>
+                                <div class="change-value ${change1d.direction}">
+                                    ${change1d.message}
+                                </div>
+                            </div>
+
+                            <div class="change-item">
+                                <div class="change-label">vs 1 Month Ago</div>
+                                <div class="change-value ${change1m.direction}">
+                                    ${change1m.message}
+                                </div>
+                            </div>
+
+                            <div class="change-item">
+                                <div class="change-label">vs 1 Year Ago</div>
+                                <div class="change-value ${change1y.direction}">
+                                    ${change1y.message}
+                                </div>
+                            </div>
+
+                            <div class="change-item">
+                                <div class="change-label">vs 5 Years Ago</div>
+                                <div class="change-value ${change5y.direction}">
+                                    ${change5y.message}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('currencyGrid').innerHTML = html;
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        function updateTimestamp() {
+            document.getElementById('timestamp').textContent = 
+                `Last updated: ${new Date().toLocaleString()}`;
+        }
+
+        // Initial load
+        loadData();
+
+        // Auto-refresh every 5 minutes
+        setInterval(loadData, 300000);
+    </script>
+</body>
+</html>
